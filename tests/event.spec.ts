@@ -13,7 +13,7 @@ test.describe("Event Tests", () => {
 
     const event = new Event(page);
 
-    await event.redirectToAddEvent();
+    //  await event.redirectToAddEvent();
     await event.createEvent();
   });
 });

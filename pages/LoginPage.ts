@@ -16,7 +16,8 @@ export class LoginPage {
   }
 
   async goto() {
-    await this.page.goto("https://unitedtribes.techcedence.net/login");
+    await this.page.goto("https://unitedtribes.techcedence.net/login", {
+       });
   }
 
   async login(email: string, password: string) {

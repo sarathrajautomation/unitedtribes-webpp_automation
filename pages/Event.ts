@@ -2,189 +2,173 @@ import { Page, expect } from "@playwright/test";
 import path from "path";
 
 export class Event {
-  readonly page: Page;
+  constructor(private page: Page) {}
 
-  constructor(page: Page) {
-    this.page = page;
-  }
-
+  // ==========================================================
+  // Navigate to Add Event (Angular Safe Version)
+  // ==========================================================
   async redirectToAddEvent() {
-    // 1️⃣ Ensure page is loaded
-    await this.page.waitForLoadState("domcontentloaded");
+    // Click profile image
+    const profileImg = this.page
+      .locator("(//img[@class='topbar-prof-img'])[2]")
+      .first();
+    await profileImg.click();
 
-    // 2️⃣ Click visible profile image
-    await this.page.locator("img.topbar-prof-img:visible").click();
+    // Click My Events
+    const myEvents = this.page.getByText("My Events", { exact: true });
+    await expect(myEvents).toBeVisible();
+    await myEvents.click();
 
-    // 3️⃣ Click "My Events"
-    await this.page.getByText("My Events", { exact: true }).click();
+    // Wait for Angular route OR container
+    //  await this.page.waitForLoadState("networkidle");
 
-    // 4️⃣ Click Add Event button
-    await this.page.locator("#addEventsBtn").click();
+    // Wait for My Events container
+    const myEventsContainer = this.page.locator("app-my-events");
+    await expect(myEventsContainer).toBeVisible({ timeout: 15000 });
+
+    // Now wait for Add Event button inside container
+    const addBtn = myEventsContainer.locator("#addEventsBtn");
+    await expect(addBtn).toBeVisible({ timeout: 15000 });
+
+    await addBtn.click();
   }
 
+  // ==========================================================
+  // Create Event Flow
+  // ==========================================================
   async createEvent() {
-    const modal = this.page.locator("app-my-event-modal");
-    await expect(modal).toBeVisible();
+    await this.redirectToAddEvent();
 
-    // Wait for form to be visible
-    await this.page.locator("form").first().waitFor({ state: "visible" });
-
+    // const modal = this.page.locator("app-my-event-modal");
+    // await expect(modal).toBeVisible({ timeout: 15000 });
+    await this.selectGoogleLocation("Los Angeles");
     await this.fillBasicInfo();
     await this.selectEventCategory();
-    await this.fillEventDate();
-    await this.fillEventTime();
-    await this.fillEventLocation();
-    await this.addMedia();
+    await this.selectTimezone();
+    await this.fillEndTime();
 
     await this.selectTribe();
-    // await this.addEventDetails();
     await this.submitEvent();
   }
 
+  // ==========================================================
+  // Basic Info
+  // ==========================================================
   private async fillBasicInfo() {
-    // Wait a bit more for form to fully render
+    await this.page.locator("//div[@class='remove-button']//img[1]").click(); // Clear location for next test run
+    await this.page.locator("label[for='false']").click();
 
-    await this.page.waitForLoadState("domcontentloaded");
-    // Select event type (Physical) - click the label instead of hidden radio
-    const physicalLabel = this.page.locator("label[for='false']");
-    await physicalLabel.click();
-    await this.page.waitForTimeout(500);
-
-    // Fill event name
-    const nameInput = this.page.locator("#name");
-    await nameInput.fill("Community Gathering");
-
-    // Fill mobile number
-    const mobileInput = this.page.locator("#mobileNo");
-    await mobileInput.fill("(415) 555-0100");
-
-    // Fill website
-    const websiteInput = this.page.locator("#website");
-    await websiteInput.fill("https://unitedtribes.techcedence.net/");
-
-    // Fill ticket link
-    const ticketLink = this.page.locator("#ticket_link");
-    await ticketLink.fill("https://tickets.example.com");
+    await this.page.locator("#name").fill("Community Gathering");
+    await this.page.locator("#mobileNo").fill("4155550100");
+    await this.page
+      .locator("#website")
+      .fill("https://unitedtribes.techcedence.net/");
+    await this.page.locator("#ticket_link").fill("https://tickets.example.com");
   }
 
+  // ==========================================================
+  // Event Category (ng-select Safe)
+  // ==========================================================
   private async selectEventCategory() {
-    await this.page.waitForTimeout(500);
-    const categorySelect = this.page.locator(
+    const category = this.page.locator(
       "ng-select[formcontrolname='eventCategory']",
     );
-    await categorySelect.click();
 
-    // Wait for dropdown to open
+    await category.click();
 
-    // const input = categorySelect.locator("input[role='combobox']");
-    // await input.click();
-
-    // Wait for options to appear
-    await this.page.waitForLoadState("domcontentloaded");
-    const option = this.page
-      .locator(".ng-option")
-      .filter({ hasText: "Business" });
-    // Wait for option to be visible
-    await option.waitFor({ state: "visible", timeout: 20000 });
-    await option.click();
-  }
-
-  private async fillEventDate() {
-    await this.page.waitForLoadState("domcontentloaded");
-
-    // Fill timezone
-    const tzSelect = this.page.locator("ng-select[formcontrolname='timezone']");
-    if (await tzSelect.locator("input").first().isVisible()) {
-      await tzSelect.click();
-      await this.page.waitForTimeout(300);
-      const tzInput = tzSelect.locator("input[role='combobox']");
-      await tzInput.fill("PST");
-      await this.page.keyboard.press("Enter");
-      await this.page.waitForTimeout(300);
-    }
-  }
-
-  async fillEventTime() {
-    await this.page.waitForLoadState("domcontentloaded");
-    const endTime = this.page.locator("input[placeholder='End Time']");
-
-    await endTime.waitFor({ state: "visible" });
-    await endTime.click();
-    await endTime.fill(""); // clear existing value
-    await endTime.type("10:00 PM"); // type like real user
-    await endTime.press("Enter"); // confirm selection
-  }
-
-  private async fillEventLocation() {
-    // Wait for Google Places Autocomplete input to be visible.
-    await this.page.keyboard.press("PageDown");
-    await this.page.keyboard.press("PageDown");
-    await this.page.keyboard.press("PageDown");
-    await this.page.waitForTimeout(3000);
-    await this.page.waitForLoadState("domcontentloaded");
-    await this.page
-      .getByRole("textbox", { name: "Search location" })
-      .fill("Los Angeles");
-    await this.page.waitForLoadState("domcontentloaded");
-
-    await this.page.keyboard.press("ArrowDown");
-    await this.page.keyboard.press("Enter");
-  }
-
-  private async addMedia() {
-    // The media step is the second step in the modal wizard
-    // This will be handled after clicking Next from the basic info step
-    // Media upload section headers are shown in the left menu
-    await this.page.waitForLoadState("domcontentloaded");
-  }
-
-  private async addEventDetails() {
-    await this.page.waitForTimeout(500);
-    // Select price type (Free) - use label to click
-    const freeLabel = this.page.locator("label[for='price-1']");
-    if (await freeLabel.isVisible()) {
-      await freeLabel.click();
-      await this.page.waitForTimeout(300);
-    }
-
-    // Note: Other advanced details like description, capacity, etc.
-    // would be on subsequent steps/pages in the modal
-  }
-
-  private async selectTribe() {
-    await this.page.waitForLoadState("domcontentloaded");
-    await this.page.waitForTimeout(500);
-    const tribeSelect = this.page.locator("ng-select[formcontrolname='tribe']");
-    await tribeSelect.click();
-
-    // Wait for dropdown to open
-    await this.page.waitForTimeout(300);
-
-    // Find and click the tribe option
-    const tribeInput = tribeSelect.locator("input[role='combobox']");
-    await tribeInput.fill("India");
-
-    // Wait for option and click
-    await this.page.waitForLoadState("domcontentloaded");
-    const option = this.page.locator(".ng-option").filter({ hasText: "India" });
-    await option.waitFor({ state: "visible", timeout: 5000 });
-    await option.click();
-  }
-
-  private async submitEvent() {
-    // Move to media step
-    const nextBtn = this.page.getByRole("button", {
-      name: "Next",
-      exact: true,
+    const option = this.page.locator(".ng-option", {
+      hasText: "Business",
     });
-    if (await nextBtn.count()) {
-      await expect(nextBtn.first()).toBeVisible();
-      await nextBtn.first().click();
-    }
 
-    // Upload primary media file (prefer input[type=file])
+    await expect(option).toBeVisible({ timeout: 10000 });
+    await option.click();
+  }
+
+  // ==========================================================
+  // Timezone (ng-select Safe)
+  // ==========================================================
+  private async selectTimezone() {
+    const timezone = this.page.locator("ng-select[formcontrolname='timezone']");
+
+    await timezone.click();
+
+    const input = timezone.locator("input[role='combobox']");
+    await input.fill("PST");
+
+    const option = this.page.locator(".ng-option", {
+      hasText: "PST",
+    });
+
+    await expect(option).toBeVisible({ timeout: 10000 });
+    await option.click();
+  }
+
+  // ==========================================================
+  // End Time
+  // ==========================================================
+  private async fillEndTime() {
+    const endTime = this.page.locator("input[placeholder='End Time']").first(); // avoid strict mode
+
+    await endTime.waitFor({ state: "visible", timeout: 10000 });
+
+    await endTime.click();
+    await endTime.press("Control+A");
+    await endTime.press("Delete");
+    await endTime.type("10:00 PM");
+    await endTime.press("Enter");
+  }
+
+  // ==========================================================
+  // Google Location (Stable Angular Version)
+  // ==========================================================
+  private async selectGoogleLocation(location: string) {
+    const input = this.page.getByPlaceholder("Search location").first();
+
+    await expect(input).toBeVisible({ timeout: 15000 });
+
+    await input.click();
+    await input.fill(location);
+
+    // Wait until Google suggestions are attached (NOT visible)
+    await this.page.waitForFunction(() => {
+      return document.querySelectorAll(".pac-item").length > 0;
+    });
+
+    // Select first suggestion via keyboard (MOST STABLE)
+    await input.press("ArrowDown");
+    await input.press("Enter");
+  }
+
+  // ==========================================================
+  // Tribe Select
+  // ==========================================================
+  private async selectTribe() {
+    const tribe = this.page.locator("ng-select[formcontrolname='tribe']");
+
+    await tribe.click();
+
+    const input = tribe.locator("input[role='combobox']");
+    await input.fill("India");
+
+    const option = this.page.locator(".ng-option", {
+      hasText: "India",
+    });
+
+    await expect(option).toBeVisible({ timeout: 10000 });
+    await option.click();
+    await this.page.locator("//button[text()='Next']").click();
+  }
+
+  // ==========================================================
+  // Submit Event
+  // ==========================================================
+  private async submitEvent() {
+  //  await this.page.waitForTimeout(3000);
+
+    // Upload Media
     const filePath = path.join(__dirname, "..", "insurance~.png");
     const fileInput = this.page.locator('input[type="file"]');
+
     if ((await fileInput.count()) > 0) {
       await fileInput.first().setInputFiles(filePath);
     } else {
@@ -206,11 +190,9 @@ export class Event {
     }
 
     // Advance to details step
-    await this.page.waitForTimeout(500);
-    if ((await nextBtn.count()) && (await nextBtn.first().isVisible()))
-      await nextBtn.first().click();
 
-    // Fill description fields (use resilient selectors)
+    await this.page.locator("//button[text()='Next']").click();
+
     const descriptionText =
       "This is a test event description for the United Tribes platform.";
     const descLabel = this.page
@@ -229,41 +211,33 @@ export class Event {
         .catch(() => {});
     }
 
-    // Click Submit/save for final details
-    if (await submitBtn.count()) {
-      await expect(submitBtn.first()).toBeVisible();
-      await submitBtn.first().click();
-    }
-    await this.page.waitForLoadState("domcontentloaded");
-    // Post-save confirm (click action image then OK) if present
-    const actionImgs = this.page.locator("img.action-img");
-    // if ((await actionImgs.count()) >= 2) {
-    //   await actionImgs.nth(1).click();
-      const ok = this.page.getByRole("button", { name: "Ok" });
-    //   if (await ok.count()) await ok.first().click();
-    // }
-    await this.page.waitForLoadState("domcontentloaded");
+    await this.page.locator("//button[text()=' Submit ']").click();
 
-    // Fill address inputs if present (fallback behavior seen in tests)
-    const addressInputs = this.page.locator("#address");
-    if ((await addressInputs.count()) > 0) {
-      await addressInputs
-        .first()
-        .fill("https://unitedtribes.com/profile/my-events");
-      if ((await addressInputs.count()) > 1)
-        await addressInputs
-          .nth(1)
-          .fill("https://unitedtribes.com/profile/my-events");
-    }
+    // const firstRow = this.page.locator("tbody tr").first();
+    // await expect(firstRow).toBeVisible({ timeout: 20000 });
 
-    // Final submit if still present
-    if (await submitBtn.count()) {
-      await submitBtn
-        .first()
-        .click()
-        .catch(() => {});
-    }
+    // await sleep(3000);
+    await this.page
+      .locator("tbody tr")
+      .first()
+      .locator("img[src*='delete.svg']")
+      .click();
+    // await this.page
+    //   .locator("table tbody tr")
+    //   .first()
+    //   .locator("img[src*='delete.svg']")
+    //   .click();
+    // Confirm delete
 
-    await this.page.waitForLoadState("domcontentloaded");
+    //await sleep(3000);
+    const popup = this.page.locator("div.w-100");
+
+    await popup.getByRole("button", { name: "Ok" }).click();
+
+    // Wait until row disappears
+    // await expect(firstRow).not.toBeVisible();
   }
+}
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
