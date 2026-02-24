@@ -1,9 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { LoginPage } from "../pages/LoginPage";
-import { Business } from "../pages/Business";
 import { Event } from "../pages/Event";
 
-test.describe("Event Tests", () => {
+test.describe("Event Modules", () => {
   test("Add Event", async ({ page }) => {
     const loginPage = new LoginPage(page);
     //const common = new Common(page);
