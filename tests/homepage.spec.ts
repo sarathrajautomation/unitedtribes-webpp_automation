@@ -3,7 +3,9 @@ import { Homepage } from "../pages/HomePage";
 import { LoginPage } from "../pages/LoginPage";
 
 test.describe("Homepage Tests", () => {
-  test("Background Video Test", async ({ page }) => {
+  test("Verify the Homepage is accessible and video is playing", async ({
+    page,
+  }) => {
     const loginPage = new LoginPage(page);
 
     await loginPage.goto();

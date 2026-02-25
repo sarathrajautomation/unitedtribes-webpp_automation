@@ -2,8 +2,8 @@ import { test, expect } from "@playwright/test";
 import { LoginPage } from "../pages/LoginPage";
 import { Business } from "../pages/Business";
 
-test.describe("Business Tests", () => {
-  test("Add Business", async ({ page }) => {
+test.describe("Business Module", () => {
+  test("Verify user can create and delete a business successfully", async ({ page }) => {
     const loginPage = new LoginPage(page);
     //const common = new Common(page);
 

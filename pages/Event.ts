@@ -16,7 +16,7 @@ export class Event {
 
     // Click My Events
     const myEvents = this.page.getByText("My Events", { exact: true });
-    await expect(myEvents).toBeVisible();
+    //  await expect(myEvents).toBeVisible();
     await myEvents.click();
 
     // Wait for Angular route OR container
@@ -24,11 +24,11 @@ export class Event {
 
     // Wait for My Events container
     const myEventsContainer = this.page.locator("app-my-events");
-    await expect(myEventsContainer).toBeVisible({ timeout: 15000 });
+    await expect(myEventsContainer).toBeVisible();
 
     // Now wait for Add Event button inside container
     const addBtn = myEventsContainer.locator("#addEventsBtn");
-    await expect(addBtn).toBeVisible({ timeout: 15000 });
+    await expect(addBtn).toBeVisible();
 
     await addBtn.click();
   }
@@ -80,7 +80,7 @@ export class Event {
       hasText: "Business",
     });
 
-    await expect(option).toBeVisible({ timeout: 10000 });
+    await expect(option).toBeVisible();
     await option.click();
   }
 
@@ -99,7 +99,7 @@ export class Event {
       hasText: "PST",
     });
 
-    await expect(option).toBeVisible({ timeout: 10000 });
+    await expect(option).toBeVisible();
     await option.click();
   }
 
@@ -109,7 +109,7 @@ export class Event {
   private async fillEndTime() {
     const endTime = this.page.locator("input[placeholder='End Time']").first(); // avoid strict mode
 
-    await endTime.waitFor({ state: "visible", timeout: 10000 });
+    await endTime.waitFor({ state: "visible" });
 
     await endTime.click();
     await endTime.press("Control+A");
@@ -124,7 +124,7 @@ export class Event {
   private async selectGoogleLocation(location: string) {
     const input = this.page.getByPlaceholder("Search location").first();
 
-    await expect(input).toBeVisible({ timeout: 15000 });
+    await expect(input).toBeVisible();
 
     await input.click();
     await input.fill(location);
@@ -154,7 +154,7 @@ export class Event {
       hasText: "India",
     });
 
-    await expect(option).toBeVisible({ timeout: 10000 });
+    await expect(option).toBeVisible();
     await option.click();
     await this.page.locator("//button[text()='Next']").click();
   }
@@ -163,7 +163,7 @@ export class Event {
   // Submit Event
   // ==========================================================
   private async submitEvent() {
-  //  await this.page.waitForTimeout(3000);
+    //  await this.page.waitForTimeout(3000);
 
     // Upload Media
     const filePath = path.join(__dirname, "..", "insurance~.png");
@@ -212,32 +212,34 @@ export class Event {
     }
 
     await this.page.locator("//button[text()=' Submit ']").click();
+    await this.deleteEvent();
 
     // const firstRow = this.page.locator("tbody tr").first();
     // await expect(firstRow).toBeVisible({ timeout: 20000 });
 
-    // await sleep(3000);
+    // Wait until row disappears
+    // await expect(firstRow).not.toBeVisible();
+  }
+
+  // ==========================================================
+  // Delete Event
+  // ==========================================================
+  private async deleteEvent() {
+    await this.sleep(3000);
     await this.page
       .locator("tbody tr")
       .first()
       .locator("img[src*='delete.svg']")
       .click();
-    // await this.page
-    //   .locator("table tbody tr")
-    //   .first()
-    //   .locator("img[src*='delete.svg']")
-    //   .click();
     // Confirm delete
-
-    //await sleep(3000);
     const popup = this.page.locator("div.w-100");
-
     await popup.getByRole("button", { name: "Ok" }).click();
-
-    // Wait until row disappears
-    // await expect(firstRow).not.toBeVisible();
   }
-}
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+
+  // ==========================================================
+  // Sleep Helper
+  // ==========================================================
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
 }

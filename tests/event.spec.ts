@@ -3,7 +3,9 @@ import { LoginPage } from "../pages/LoginPage";
 import { Event } from "../pages/Event";
 
 test.describe("Event Modules", () => {
-  test("Add Event", async ({ page }) => {
+  test("Verify user can create and delete an event successfully", async ({
+    page,
+  }) => {
     const loginPage = new LoginPage(page);
     //const common = new Common(page);
 
