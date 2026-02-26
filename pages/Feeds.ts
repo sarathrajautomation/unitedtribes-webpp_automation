@@ -42,11 +42,27 @@ export class Feeds {
       waitUntil: "domcontentloaded",
     });
     await this.page.getByText("What's on your mind?").click();
-    await this.page.locator('.color-theme-img').click();
-    await this.page.locator('textarea[formcontrolname="description"]').fill("My image feed caption");
-    
+    await this.page.getByRole("img").nth(2).click();
+    await this.page
+      .locator('textarea[formcontrolname="description"]')
+      .fill("My image feed caption");
+
+    const postBtn = this.page.locator(
+      'button.feed-tribe-filter-btn:has-text("Post")',
+    );
+
+    await expect(postBtn).toBeVisible();
+    await expect(postBtn).toBeEnabled();
+    await postBtn.click();
+    await this.checkMediaUploadInFeeds();
   }
-  async checkLikeAndComment() {
+
+  async checkMediaUploadInFeeds() {
+    await this.page.goto("https://unitedtribes.techcedence.net/pulse", {
+      waitUntil: "domcontentloaded",
+    });
+    await this.page.getByText("What's on your mind?").click();
+
     // Implement like and comment steps
   }
 
