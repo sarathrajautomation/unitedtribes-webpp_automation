@@ -10,7 +10,7 @@ test.describe("Event Modules", () => {
     //const common = new Common(page);
 
     await loginPage.goto();
-    await loginPage.login("will@mailinator.com", "P");
+    await loginPage.login("vlmmani2000@gmail.com", "Mani1212@");
 
     const event = new Event(page);
 

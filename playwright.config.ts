@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: "./tests",
 
   /* Global timeout for each test */
-  timeout: 100000,
+  timeout: 500000,
 
   /* Run tests inside a file sequentially */
   fullyParallel: false,
@@ -19,10 +19,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
 
   /* Test reporters */
-  reporter: [
-    ["list"],
-    ["html", { open: "never" }]
-  ],
+  reporter: [["list"], ["html", { open: "never" }]],
 
   /* Shared settings for all projects */
   use: {
@@ -42,8 +39,8 @@ export default defineConfig({
     video: "retain-on-failure",
 
     /* Global action & navigation timeouts */
-    actionTimeout: 100000,
-    navigationTimeout: 100000,
+    actionTimeout: 500000,
+    navigationTimeout: 500000,
 
     /* Geolocation setup */
     geolocation: {

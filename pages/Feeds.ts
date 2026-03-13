@@ -1,5 +1,5 @@
 import { Page, expect } from "@playwright/test";
-import { log } from "console";
+
 import path from "path/win32";
 
 export class Feeds {
@@ -69,35 +69,28 @@ export class Feeds {
     await this.page.setInputFiles('input[type="file"]', filePath);
 
     await this.page.locator("//button[text()=' Post ']").click();
-    await this.deleteAllPosts();
+    await this.deleteFivePosts();
     // Implement like and comment steps
   }
 
-  async deleteAllPosts() {
+  async deleteFivePosts() {
     await this.page.goto(
       "https://unitedtribes.techcedence.net/profile/my-pulse",
       { waitUntil: "domcontentloaded" },
     );
 
-    const posts = this.page.locator("app-feed-card");
-    console.log(await posts.count());
+    for (let i = 0; i < 5; i++) {
+      await this.page
+        .locator("app-feed-card")
+        .first()
+        .locator(".fa-ellipsis-vertical")
+        .click();
 
-    while ((await posts.count()) > 0) {
-      const firstPost = posts.first();
+      await this.page.locator("i.bx-trash").locator("..").click();
 
-      // Click 3-dot inside this post only
-      await firstPost.locator(".fa-ellipsis-vertical").click();
+      await this.page.getByRole("button", { name: "Delete" }).click();
 
-      // Click Delete option from dropdown
-      await this.page.locator("text=Delete").click();
-
-      // Confirm delete
-      await this.page.locator("button:has-text('Delete')").click();
-
-      // Wait until this post disappears from DOM
-      await firstPost.waitFor({ state: "detached" });
+      await this.page.waitForTimeout(1000);
     }
-
-    console.log("All posts deleted successfully");
   }
 }

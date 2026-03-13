@@ -44,10 +44,15 @@ export class Business {
   }
 
   private async selectBusinessCategory() {
-    const categorySelect = this.page.locator("ng-select[formcontrolname='businessCategory']");
+    const categorySelect = this.page.locator(
+      "ng-select[formcontrolname='businessCategory']",
+    );
     await categorySelect.click();
     await categorySelect.locator("input[type='text']").fill("Restaurant");
-    await this.page.locator(".ng-option").filter({ hasText: "Restaurant" }).click();
+    await this.page
+      .locator(".ng-option")
+      .filter({ hasText: "Restaurant" })
+      .click();
   }
 
   private async selectBusinessType() {
@@ -55,7 +60,7 @@ export class Business {
   }
 
   private async fillPhoneNumber() {
-    await this.page.locator('#mobileNo').fill('(415) 555-0132');
+    await this.page.locator("#mobileNo").fill("(415) 555-0132");
   }
 
   private async selectTribe() {
@@ -70,26 +75,28 @@ export class Business {
 
   private async addMedia() {
     const mediaSection = this.page.locator(
-      "//span[normalize-space(text())='Media and Additional Details']"
+      "//span[normalize-space(text())='Media and Additional Details']",
     );
     await expect(mediaSection).toBeVisible();
     await mediaSection.click();
-this.page.waitForTimeout(3000); // Wait for media section to expand
+    this.page.waitForTimeout(3000); // Wait for media section to expand
     const image = this.page.locator(
-      "//span[contains(@class,'avatar-icon rounded-circle')]"
+      "//span[contains(@class,'avatar-icon rounded-circle')]",
     );
     await expect(image).toBeVisible();
     const filePath = path.join(__dirname, "..", "insurance~.png");
     await this.page.setInputFiles(
       "//span[contains(@class,'avatar-icon rounded-circle')]",
-      filePath
+      filePath,
     );
-    await this.page.locator("//button[normalize-space(text())='Submit']").click();
+    await this.page
+      .locator("//button[normalize-space(text())='Submit']")
+      .click();
   }
 
   private async addBusinessDetails() {
     const additional = this.page.locator(
-      "//label[text()='Additional Details *']/following::textarea"
+      "//label[text()='Additional Details *']/following::textarea",
     );
     await expect(additional).toBeVisible();
     await additional.fill("Accounting Services");
@@ -113,6 +120,8 @@ this.page.waitForTimeout(3000); // Wait for media section to expand
     await expect(saved).toBeVisible();
     await saved.click();
     await this.page.locator("(//img[@class='action-img'])[2]").click();
-    await this.page.locator("//a[contains(@class,'btn ut-gold-bg-button')]").click();
+    await this.page
+      .locator("//a[contains(@class,'btn ut-gold-bg-button')]")
+      .click();
   }
 }
